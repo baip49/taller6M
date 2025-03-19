@@ -12,8 +12,13 @@ export const getProducts = async (req: Request, res: Response) => {
 
 export const addProduct = async (req: Request, res: Response) => {
     const { nombre, precio, descripcion, categoria } = req.body;
+    const created_at = new Date();
+    const updated_at = new Date();
     try {
-        await pool.query('INSERT INTO productos (nombre, precio, descripcion, categoria) VALUES (?, ?, ?, ?)', [nombre, precio, descripcion, categoria]);
+        await pool.query(
+            'INSERT INTO productos (nombre, precio, descripcion, categoria, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)', 
+            [nombre, precio, descripcion, categoria, created_at, updated_at]
+        );
         res.status(201).json({ mensaje: 'Producto agregado exitosamente' });
     } catch (error) {
         res.status(500).json({ error: 'Error al agregar el producto' });
