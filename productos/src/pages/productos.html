@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Productos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        input {
+            margin: 5px;
+        }
+        button {
+            margin: 5px;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Gestión de Productos</h1>
+    <form id="productForm">
+        <input type="text" id="nombre" placeholder="Nombre" required>
+        <input type="number" id="precio" placeholder="Precio" step="0.01" required>
+        <input type="text" id="descripcion" placeholder="Descripción" required>
+        <input type="text" id="categoria" placeholder="Categoría" required>
+        <button type="submit">Crear</button>
+    </form>
+
+    <h2>Lista de Productos</h2>
+    <ul id="productList"></ul>
+
+    <script>
+        const productForm = document.getElementById('productForm');
+        const productList = document.getElementById('productList');
+        let editingId = null;
+
+        // Obtener productos
+        const fetchProductos = async () => {
+            try {
+                const response = await fetch('/api/productos/list');
+                const productos = await response.json();
+                renderProductos(productos);
+            } catch (error) {
+                console.error('Error al obtener los productos:', error);
+            }
+        };
+
+        // Renderizar productos
+        const renderProductos = (productos) => {
+            productList.innerHTML = '';
+            productos.forEach(producto => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <strong>${producto.nombre}</strong> - $${producto.precio} - ${producto.descripcion} - ${producto.categoria}
+                    <button onclick="editProducto(${producto.id}, '${producto.nombre}', ${producto.precio}, '${producto.descripcion}', '${producto.categoria}')">Editar</button>
+                    <button onclick="deleteProducto(${producto.id})">Eliminar</button>
+                `;
+                productList.appendChild(li);
+            });
+        };
+
+        // Crear o actualizar producto
+        productForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nombre = document.getElementById('nombre').value;
+            const precio = parseFloat(document.getElementById('precio').value);
+            const descripcion = document.getElementById('descripcion').value;
+            const categoria = document.getElementById('categoria').value;
+
+            const producto = { nombre, precio, descripcion, categoria };
+
+            try {
+                if (editingId) {
+                    // Actualizar producto
+                    await fetch(`/api/productos/edit/${editingId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(producto)
+                    });
+                    editingId = null;
+                } else {
+                    // Crear producto
+                    await fetch('/api/productos/add', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(producto)
+                    });
+                }
+                productForm.reset();
+                fetchProductos();
+            } catch (error) {
+                console.error('Error al guardar el producto:', error);
+            }
+        });
+
+        // Eliminar producto
+        const deleteProducto = async (id) => {
+            try {
+                await fetch(`/api/productos/delete/${id}`, { method: 'DELETE' });
+                fetchProductos();
+            } catch (error) {
+                console.error('Error al eliminar el producto:', error);
+            }
+        };
+
+        // Editar producto
+        const editProducto = (id, nombre, precio, descripcion, categoria) => {
+            document.getElementById('nombre').value = nombre;
+            document.getElementById('precio').value = precio;
+            document.getElementById('descripcion').value = descripcion;
+            document.getElementById('categoria').value = categoria;
+            editingId = id;
+        };
+
+        // Inicializar
+        fetchProductos();
+    </script>
+</body>
+</html>

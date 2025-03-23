@@ -25,6 +25,46 @@ export const addProduct = async (req: Request, res: Response) => {
     }
 };
 
+export const editProduct = async (req: Request, res: Response): Promise<void> => {
+    const { id } = req.params; 
+    const { nombre, precio, descripcion, categoria } = req.body;
+    const updated_at = new Date();
+
+    try {
+        const [result] = await pool.query(
+            'UPDATE productos SET nombre = ?, precio = ?, descripcion = ?, categoria = ?, updated_at = ? WHERE id = ?',
+            [nombre, precio, descripcion, categoria, updated_at, id]
+        );
+
+        if ((result as any).affectedRows === 0) {
+            res.status(404).json({ error: 'Producto no encontrado' });
+            return;
+        }
+
+        res.status(200).json({ mensaje: 'Producto actualizado exitosamente' });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al actualizar el producto' });
+    }
+};
+
+export const deleteProduct = async (req: Request, res: Response): Promise<void> => {
+    const { id } = req.params;
+
+    try {
+        const [result] = await pool.query('DELETE FROM productos WHERE id = ?', [id]);
+
+        if ((result as any).affectedRows === 0) {
+            res.status(404).json({ error: 'Producto no encontrado' });
+            return;
+        }
+
+        res.status(200).json({ mensaje: 'Producto eliminado exitosamente' });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al eliminar el producto' });
+    }
+};
+
+
 /*
 curl -X POST http://localhost:3000/api/productos/add \
 -H "Content-Type: application/json" \

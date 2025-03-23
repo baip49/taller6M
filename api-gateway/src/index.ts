@@ -1,6 +1,5 @@
 import express from 'express';
-import productosRoutes from '../../productos/src/routes/productosRoutes';
-import pool from '../../productos/src/config/db';
+import routes from '../../productos/src/routes/routes';
 
 
 const app = express();
@@ -12,7 +11,7 @@ app.get('/', (req, res) => {
   res.send('api-gateway');
 });
 
-app.use('/api', productosRoutes);
+app.use('/api', routes);
 
 app.listen(port, () => {
   console.log(`Servidor corriendo en el puerto 3000`);
